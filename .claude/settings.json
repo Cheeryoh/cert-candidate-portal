@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git reset --hard*)",
+      "Bash(git push -f*)",
+      "Bash(rm -rf*)",
+      "Bash(supabase db push*)",
+      "Bash(DROP TABLE*)",
+      "Bash(DROP DATABASE*)"
+    ]
+  }
+}
