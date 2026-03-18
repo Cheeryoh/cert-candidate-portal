@@ -84,3 +84,23 @@ Every task is logged in `WORKLOG.md` by AI after completion. The human updates t
 ## 8. Questions
 
 When in doubt, AI asks. A short pause to clarify is always better than executing the wrong thing.
+
+---
+
+## 9. Visual Verification (UI Tasks)
+
+Derived from RCA: *Candidate Landing Page - Logo Clipping - RCA Doc.md* (2026-03-17).
+
+- **A passing build is not a passing product.** `npm run build` / `tsc --noEmit` confirms type correctness only — it cannot detect visual overflow, misalignment, or layout defects.
+- **Playwright screenshot is mandatory** for any task that touches a rendered UI element. It must be taken and reviewed by AI *before* reporting the task as complete — not in response to user feedback.
+- **Evaluate fixes against the full success criteria**, not just the reported symptom. A fix that resolves clipping but introduces misalignment is not a complete fix.
+- **Never use SVG `<text>` for typographic wordmarks.** SVG clips overflowing text silently with no build or runtime warning. Use HTML text elements — they scale naturally, never clip, and respond correctly to CSS layout context.
+- **When centering inline content in a flex column**, size the container to its content (no fixed width) so the box and the visible text share the same center point. Do not rely on `text-align: center` as a fallback when a simpler box-model fix is available.
+
+---
+
+## 10. Tool Selection — UI Components
+
+- Prefer the simplest rendering primitive that meets the requirement. HTML > SVG for text-based components.
+- Fixed-width classes (`w-*`) on inline elements or flex items require explicit consideration of text alignment within that box — do not assume centering the box centers the content.
+- When a component serves multiple contexts (login page logo vs. sidebar logo), verify alignment behavior independently in each context.

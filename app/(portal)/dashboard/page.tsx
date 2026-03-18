@@ -1,7 +1,9 @@
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getProfile, getAttemptsForCandidate } from '@/lib/supabase/queries'
 import { ProfileCard } from '@/components/portal/profile-card'
 import { StatsBar } from '@/components/portal/stats-bar'
+import { PageError } from '@/components/ui/page-error'
 import Link from 'next/link'
 
 export default async function DashboardPage() {
@@ -10,12 +12,17 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) return null
+  if (!user) redirect('/login')
 
-  const [profile, attempts] = await Promise.all([
-    getProfile(supabase, user.id),
-    getAttemptsForCandidate(supabase, user.id),
-  ])
+  let profile, attempts
+  try {
+    ;[profile, attempts] = await Promise.all([
+      getProfile(supabase, user.id),
+      getAttemptsForCandidate(supabase, user.id),
+    ])
+  } catch {
+    return <PageError />
+  }
 
   const stats = [
     {
@@ -42,7 +49,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6 max-w-3xl">
-      <h1 className="text-2xl font-bold text-zinc-900">Dashboard</h1>
+      <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
       <ProfileCard
         fullName={profile?.full_name ?? user.email ?? 'Candidate'}
         email={user.email}
@@ -53,13 +60,13 @@ export default async function DashboardPage() {
       <div className="flex gap-3">
         <Link
           href="/history"
-          className="inline-flex h-9 items-center justify-center rounded-md border border-zinc-200 bg-white px-4 text-sm font-medium transition-colors hover:bg-zinc-50"
+          className="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted"
         >
           View History
         </Link>
         <Link
           href="/catalogue"
-          className="inline-flex h-9 items-center justify-center rounded-md border border-zinc-200 bg-white px-4 text-sm font-medium transition-colors hover:bg-zinc-50"
+          className="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted"
         >
           Exam Catalogue
         </Link>

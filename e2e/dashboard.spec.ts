@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 const SEED_EMAIL = process.env.TEST_EMAIL ?? 'alice@example.com'
-const SEED_PASS = process.env.TEST_PASS ?? 'SeedPass123!'
+const SEED_PASS  = process.env.TEST_PASS  ?? ''
 
 test.describe('Dashboard page', () => {
   test.beforeEach(async ({ page }) => {
@@ -17,8 +17,7 @@ test.describe('Dashboard page', () => {
   })
 
   test('renders profile card with name', async ({ page }) => {
-    // Alice Anderson's initials or name should be visible
-    await expect(page.getByText(/alice/i)).toBeVisible()
+    await expect(page.getByText('Alice Anderson')).toBeVisible()
   })
 
   test('renders 4 stat cards', async ({ page }) => {
@@ -29,7 +28,7 @@ test.describe('Dashboard page', () => {
   })
 
   test('has links to History and Catalogue', async ({ page }) => {
-    await expect(page.getByRole('link', { name: /history/i })).toBeVisible()
-    await expect(page.getByRole('link', { name: /catalogue/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'History', exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Catalogue', exact: true })).toBeVisible()
   })
 })

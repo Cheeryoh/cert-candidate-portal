@@ -25,7 +25,7 @@ const STATUS_CLASS: Record<string, string> = {
   failed: 'bg-red-100 text-red-800 border-red-200',
   scheduled: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   in_progress: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  cancelled: 'bg-zinc-100 text-zinc-600 border-zinc-200',
+  cancelled: 'bg-muted text-muted-foreground border-border',
 }
 
 interface Attempt {
@@ -46,14 +46,14 @@ interface Attempt {
 export function AttemptsTable({ attempts }: { attempts: Attempt[] }) {
   if (attempts.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-zinc-500">
+      <p className="py-8 text-center text-sm text-muted-foreground">
         No exam attempts yet.
       </p>
     )
   }
 
   return (
-    <div className="rounded-md border border-zinc-200 bg-white">
+    <div className="rounded-md border border-border bg-card">
       <Table>
         <TableHeader>
           <TableRow>
@@ -71,10 +71,10 @@ export function AttemptsTable({ attempts }: { attempts: Attempt[] }) {
             <TableRow key={a.id}>
               <TableCell>
                 <div>
-                  <p className="font-medium text-zinc-900">
+                  <p className="font-medium text-foreground">
                     {a.certifications?.code ?? '—'}
                   </p>
-                  <p className="text-xs text-zinc-500">{a.certifications?.name}</p>
+                  <p className="text-xs text-muted-foreground">{a.certifications?.name}</p>
                 </div>
               </TableCell>
               <TableCell>{a.attempt_number}</TableCell>

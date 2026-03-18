@@ -1,6 +1,8 @@
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getEligibilityForCandidate } from '@/lib/supabase/queries'
 import { CertCard } from '@/components/catalogue/cert-card'
+import { PageError } from '@/components/ui/page-error'
 
 export default async function CataloguePage() {
   const supabase = await createClient()
@@ -8,20 +10,25 @@ export default async function CataloguePage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) return null
+  if (!user) redirect('/login')
 
-  const eligibility = await getEligibilityForCandidate(supabase, user.id)
+  let eligibility
+  try {
+    eligibility = await getEligibilityForCandidate(supabase, user.id)
+  } catch {
+    return <PageError />
+  }
 
   return (
     <div className="flex flex-col gap-6 max-w-5xl">
       <div>
-        <h1 className="text-2xl font-bold text-zinc-900">Exam Catalogue</h1>
-        <p className="text-sm text-zinc-500 mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Exam Catalogue</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           All available certifications and your eligibility status
         </p>
       </div>
       {eligibility.length === 0 ? (
-        <p className="text-sm text-zinc-500 py-8 text-center">
+        <p className="text-sm text-muted-foreground py-8 text-center">
           No certifications available.
         </p>
       ) : (

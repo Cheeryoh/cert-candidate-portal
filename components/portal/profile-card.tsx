@@ -15,15 +15,15 @@ export function ProfileCard({ fullName, email, orgName, avatarUrl }: ProfileCard
       <CardContent className="flex items-center gap-4 pt-6">
         <Avatar className="h-14 w-14">
           {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} />}
-          <AvatarFallback className="bg-zinc-200 text-zinc-700 text-lg font-semibold">
+          <AvatarFallback className="bg-muted text-foreground text-lg font-semibold">
             {getInitials(fullName)}
           </AvatarFallback>
         </Avatar>
         <div>
-          <p className="text-lg font-semibold text-zinc-900">{fullName}</p>
-          {email && <p className="text-sm text-zinc-500">{email}</p>}
+          <p className="text-lg font-semibold text-foreground">{fullName}</p>
+          {email && <p className="text-sm text-muted-foreground">{email}</p>}
           {orgName && (
-            <p className="text-sm text-zinc-400">{orgName}</p>
+            <p className="text-sm text-muted-foreground">{orgName}</p>
           )}
         </div>
       </CardContent>

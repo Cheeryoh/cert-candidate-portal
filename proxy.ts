@@ -1,8 +1,28 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const PROTECTED_ROUTES = ['/dashboard', '/history', '/catalogue']
-const AUTH_ROUTES = ['/login', '/register']
+/**
+ * Deny-by-default route protection (P1-1).
+ *
+ * Every route requires authentication UNLESS it is listed in PUBLIC_ROUTES.
+ * New routes — including future /api/exam/* endpoints — are automatically
+ * protected without any code change here.
+ *
+ * PUBLIC_ROUTES: accessible without a session.
+ * AUTH_ONLY_ROUTES: subset of public routes that redirect to /dashboard
+ *   when the user IS already authenticated (prevents logged-in users
+ *   from seeing the login page).
+ *
+ * Matching uses exact equality OR startsWith(route + '/') to avoid
+ * false positives like /dashboard matching /dashboardx (P1-1 fix).
+ */
+
+const PUBLIC_ROUTES: string[]    = ['/', '/login']
+const AUTH_ONLY_ROUTES: string[] = ['/login']
+
+function matches(pathname: string, routes: string[]): boolean {
+  return routes.some(r => pathname === r || pathname.startsWith(r + '/'))
+}
 
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
@@ -34,16 +54,15 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  const isProtected = PROTECTED_ROUTES.some((r) => pathname.startsWith(r))
-  const isAuthRoute = AUTH_ROUTES.some((r) => pathname.startsWith(r))
-
-  if (isProtected && !user) {
+  // Deny-by-default: any route not in PUBLIC_ROUTES requires a session
+  if (!matches(pathname, PUBLIC_ROUTES) && !user) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  if (isAuthRoute && user) {
+  // Auth-only routes redirect to dashboard when user is already signed in
+  if (matches(pathname, AUTH_ONLY_ROUTES) && user) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)

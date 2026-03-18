@@ -1,15 +1,18 @@
 import { test, expect } from '@playwright/test'
 
-// Seed credentials (alice@example.com / SeedPass123!)
+// Credentials are read from .env.local (TEST_EMAIL / TEST_PASS).
+// Set TEST_PASS to the same value as SEED_PASSWORD before running tests.
 const SEED_EMAIL = process.env.TEST_EMAIL ?? 'alice@example.com'
-const SEED_PASS = process.env.TEST_PASS ?? 'SeedPass123!'
+const SEED_PASS  = process.env.TEST_PASS  ?? ''
 
 test.describe('Auth flow', () => {
   test('login page renders correctly', async ({ page }) => {
     await page.goto('/login')
-    await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible()
+    await expect(page.getByText('ANTHROP\\C')).toBeVisible()
+    await expect(page.getByText('Certification Portal')).toBeVisible()
     await expect(page.getByLabel(/email/i)).toBeVisible()
     await expect(page.getByLabel(/password/i)).toBeVisible()
+    await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible()
   })
 
   test('redirects unauthenticated users from /dashboard to /login', async ({ page }) => {

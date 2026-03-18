@@ -42,7 +42,7 @@ export function CertCard({
       return (
         <Badge
           variant="outline"
-          className="bg-zinc-50 text-zinc-500 border-zinc-300"
+          className="bg-muted text-muted-foreground border-border"
           title="Prerequisites not met"
         >
           Not Eligible
@@ -63,7 +63,7 @@ export function CertCard({
       failed: 'bg-red-100 text-red-800 border-red-200',
       scheduled: 'bg-yellow-100 text-yellow-800 border-yellow-200',
       in_progress: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      cancelled: 'bg-zinc-100 text-zinc-600 border-zinc-200',
+      cancelled: 'bg-muted text-muted-foreground border-border',
     }
     return (
       <Badge className={cls[latest_attempt.status] ?? ''} variant="outline">
@@ -78,7 +78,7 @@ export function CertCard({
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <p className="text-xs font-mono text-zinc-400">{code}</p>
+            <p className="text-xs font-mono text-muted-foreground">{code}</p>
             <CardTitle className="text-base leading-snug">{name}</CardTitle>
           </div>
           {eligibilityBadge()}
@@ -91,7 +91,7 @@ export function CertCard({
         </div>
         {latestAttemptBadge()}
         {!prerequisites_met && (
-          <p className="text-xs text-zinc-400">
+          <p className="text-xs text-muted-foreground">
             Complete prerequisite certification(s) to become eligible.
           </p>
         )}

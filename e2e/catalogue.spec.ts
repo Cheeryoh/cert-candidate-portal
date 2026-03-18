@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 const SEED_EMAIL = process.env.TEST_EMAIL ?? 'alice@example.com'
-const SEED_PASS = process.env.TEST_PASS ?? 'SeedPass123!'
+const SEED_PASS  = process.env.TEST_PASS  ?? ''
 
 test.describe('Catalogue page', () => {
   test.beforeEach(async ({ page }) => {

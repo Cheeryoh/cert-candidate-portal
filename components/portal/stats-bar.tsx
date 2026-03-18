@@ -11,8 +11,8 @@ export function StatsBar({ stats }: { stats: Stat[] }) {
       {stats.map(({ label, value }) => (
         <Card key={label}>
           <CardContent className="pt-6">
-            <p className="text-3xl font-bold text-zinc-900">{value}</p>
-            <p className="mt-1 text-sm text-zinc-500">{label}</p>
+            <p className="text-3xl font-bold text-foreground">{value}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{label}</p>
           </CardContent>
         </Card>
       ))}
