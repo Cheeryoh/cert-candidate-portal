@@ -7,11 +7,22 @@ import { AnthropicLogo } from '@/components/brand/anthropic-logo'
 import { toast } from 'sonner'
 import { loginAction } from './actions'
 
+// Demo auto-fill — controlled by NEXT_PUBLIC_DEMO_MODE env var.
+// Embedded in the JS bundle at build time; only use a dedicated demo account.
+// Toggle: set NEXT_PUBLIC_DEMO_MODE=true in Vercel and redeploy to enable,
+// remove the variable and redeploy to disable.
+const DEMO_MODE     = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+const DEMO_EMAIL    = process.env.NEXT_PUBLIC_DEMO_EMAIL    ?? ''
+const DEMO_PASSWORD = process.env.NEXT_PUBLIC_DEMO_PASSWORD ?? ''
+
 export default function LoginPage() {
   const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
+
+  // State is initialised directly from build-time constants —
+  // no useEffect needed, no flash of empty fields.
+  const [email, setEmail]       = useState(DEMO_MODE ? DEMO_EMAIL    : '')
+  const [password, setPassword] = useState(DEMO_MODE ? DEMO_PASSWORD : '')
+  const [loading, setLoading]   = useState(false)
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -48,9 +59,15 @@ export default function LoginPage() {
 
       {/* Sign-in card */}
       <div className="w-full max-w-sm rounded-md p-8 bg-card border border-border">
-        <p className="mb-6 text-sm text-muted-foreground">
-          Certification Portal
-        </p>
+        <div className="mb-6 flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">Certification Portal</p>
+          {DEMO_MODE && (
+            <span className="rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-accent-foreground">
+              Demo access
+            </span>
+          )}
+        </div>
+
         <form onSubmit={handleLogin} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
             <label htmlFor="email" className="text-sm font-medium text-foreground">
