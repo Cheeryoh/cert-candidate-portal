@@ -88,7 +88,7 @@ export function CertCard({
   // CCPA certs run in the Performance Lab — route via /api/lab-handoff
   const isLabCert = code === 'CCPA-101' || code === 'CCPA-201'
   const continueHref = isLabCert
-    ? `/api/lab-handoff?attemptId=${latest_attempt?.id}`
+    ? `/catalogue/lab-launch/${latest_attempt?.id}`
     : `/exam/${latest_attempt?.id}`
 
   return (

@@ -99,12 +99,12 @@ export async function registerAndStartExam(
     attemptId = newAttempt!.id
   }
 
-  // For lab certs: redirect to the portal's own API route which generates the
-  // magic link and issues an external redirect to the Performance Lab.
-  // redirect() only supports same-origin in server actions — the API route
-  // handles the cross-domain hop via NextResponse.redirect.
+  // For lab certs: redirect to the lab-launch server component page, which
+  // generates the magic link and issues a proper HTTP 307 to the Performance
+  // Lab. redirect() in server *components* supports external URLs; server
+  // *actions* do not — hence the intermediate page.
   if (isLabCert) {
-    redirect(`/api/lab-handoff?attemptId=${attemptId}`)
+    redirect(`/catalogue/lab-launch/${attemptId}`)
   }
 
   redirect(`/exam/${attemptId}`)
