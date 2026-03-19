@@ -23,8 +23,10 @@ export default async function LabLaunchPage({
 
   if (!user) redirect('/login')
 
-  const labUrl = process.env.PERFORMANCE_LAB_URL
-  if (!labUrl) redirect('/catalogue')
+  const rawLabUrl = process.env.PERFORMANCE_LAB_URL
+  if (!rawLabUrl) redirect('/catalogue')
+  // Ensure the URL has a protocol — Vercel env vars are sometimes set without https://
+  const labUrl = rawLabUrl!.startsWith('http') ? rawLabUrl! : `https://${rawLabUrl}`
 
   // Verify the attempt belongs to this user
   const { data: attempt } = await supabase
