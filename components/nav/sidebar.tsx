@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
 import { AnthropicLogo } from '@/components/brand/anthropic-logo'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { useBrand } from '@/components/brand/brand-context'
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard' },
@@ -17,6 +18,7 @@ const NAV_ITEMS = [
 export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
+  const { name: brandName, isDefault: isDefaultBrand } = useBrand()
 
   async function handleSignOut() {
     const supabase = createClient()
@@ -56,7 +58,7 @@ export function Sidebar() {
         rel="noopener noreferrer"
         className="mb-2 rounded px-3 py-2 text-sm transition-colors text-sidebar-foreground/55 hover:text-sidebar-foreground"
       >
-        Anthropic Academy →
+        {isDefaultBrand ? 'Anthropic Academy' : `${brandName} Academy`} →
       </a>
       <ThemeToggle />
       <button

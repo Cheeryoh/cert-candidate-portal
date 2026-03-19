@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { AnthropicLogo } from '@/components/brand/anthropic-logo'
 import { toast } from 'sonner'
 import { loginAction } from './actions'
+import { useBrand } from '@/components/brand/brand-context'
 
 // Demo auto-fill — controlled by NEXT_PUBLIC_DEMO_MODE env var.
 // Embedded in the JS bundle at build time; only use a dedicated demo account.
@@ -17,6 +18,7 @@ const DEMO_PASSWORD = process.env.NEXT_PUBLIC_DEMO_PASSWORD ?? ''
 
 export default function LoginPage() {
   const router = useRouter()
+  const { name: brandName, isDefault: isDefaultBrand } = useBrand()
 
   // State is initialised directly from build-time constants —
   // no useEffect needed, no flash of empty fields.
@@ -50,7 +52,7 @@ export default function LoginPage() {
           rel="noopener noreferrer"
           className="text-sm transition-colors text-foreground/55 hover:text-foreground"
         >
-          Anthropic Academy →
+          {isDefaultBrand ? 'Anthropic Academy' : `${brandName} Academy`} →
         </a>
       </div>
 

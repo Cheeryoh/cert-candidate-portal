@@ -58,7 +58,7 @@ export function AttemptsTable({ attempts }: { attempts: Attempt[] }) {
         <TableHeader>
           <TableRow>
             <TableHead>Certification</TableHead>
-            <TableHead>Attempt #</TableHead>
+            <TableHead>Attempt</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Score</TableHead>
             <TableHead>Date</TableHead>
@@ -77,7 +77,7 @@ export function AttemptsTable({ attempts }: { attempts: Attempt[] }) {
                   <p className="text-xs text-muted-foreground">{a.certifications?.name}</p>
                 </div>
               </TableCell>
-              <TableCell>{a.attempt_number}</TableCell>
+              <TableCell>Attempt {a.attempt_number}</TableCell>
               <TableCell>
                 <Badge
                   variant={STATUS_VARIANT[a.status] ?? 'outline'}

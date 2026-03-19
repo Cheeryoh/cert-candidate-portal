@@ -1,8 +1,12 @@
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { formatDate } from '@/lib/utils'
+import { registerAndStartExam } from '@/app/(portal)/catalogue/actions'
+import { StartExamButton } from './start-exam-button'
 
 interface LatestAttempt {
+  id?: string
   status: string
   score: number | null
   submitted_at: string | null
@@ -12,6 +16,7 @@ interface LatestAttempt {
 }
 
 interface CertCardProps {
+  certificationId: string
   code: string
   name: string
   category: string
@@ -22,6 +27,7 @@ interface CertCardProps {
 }
 
 export function CertCard({
+  certificationId,
   code,
   name,
   category,
@@ -65,13 +71,19 @@ export function CertCard({
       in_progress: 'bg-yellow-100 text-yellow-800 border-yellow-200',
       cancelled: 'bg-muted text-muted-foreground border-border',
     }
+    const attemptLabel = `Attempt ${latest_attempt.attempt_number}`
     return (
       <Badge className={cls[latest_attempt.status] ?? ''} variant="outline">
-        Last: {latest_attempt.status.replace('_', ' ')}
+        {attemptLabel} · {latest_attempt.status.replace('_', ' ')}
         {latest_attempt.score != null && ` · ${latest_attempt.score}%`}
       </Badge>
     )
   }
+
+  const startExam = registerAndStartExam.bind(null, certificationId)
+
+  const hasInProgress =
+    latest_attempt?.status === 'in_progress' && !!latest_attempt?.id
 
   return (
     <Card className="flex flex-col gap-2">
@@ -94,6 +106,21 @@ export function CertCard({
           <p className="text-xs text-muted-foreground">
             Complete prerequisite certification(s) to become eligible.
           </p>
+        )}
+        {prerequisites_met && (
+          <div className="mt-1 flex flex-col gap-2">
+            {hasInProgress && (
+              <Link
+                href={`/exam/${latest_attempt!.id}`}
+                className="w-full rounded-md border border-primary bg-primary/10 px-3 py-1.5 text-center text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+              >
+                Continue Exam →
+              </Link>
+            )}
+            <form action={startExam}>
+              <StartExamButton />
+            </form>
+          </div>
         )}
       </CardContent>
     </Card>

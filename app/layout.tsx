@@ -3,6 +3,8 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
 import { ThemeProvider } from 'next-themes'
+import { BRAND_NAME } from '@/lib/brand'
+import { BrandProvider } from '@/components/brand/brand-context'
 
 const inter = Inter({
   variable: '--font-sans',
@@ -10,8 +12,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Anthropic Certification Portal',
-  description: 'Certification exam candidate portal',
+  title: `${BRAND_NAME} Certification Portal`,
+  description: `${BRAND_NAME} certification exam candidate portal`,
 }
 
 export default function RootLayout({
@@ -23,8 +25,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
-          {children}
-          <Toaster />
+          <BrandProvider name={BRAND_NAME}>
+            {children}
+            <Toaster />
+          </BrandProvider>
         </ThemeProvider>
       </body>
     </html>

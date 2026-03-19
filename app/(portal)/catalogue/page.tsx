@@ -36,6 +36,7 @@ export default async function CataloguePage() {
           {eligibility.map((cert) => (
             <CertCard
               key={cert.certification_id}
+              certificationId={cert.certification_id}
               code={cert.code}
               name={cert.name}
               category={cert.category}

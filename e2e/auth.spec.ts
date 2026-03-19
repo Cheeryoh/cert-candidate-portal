@@ -8,7 +8,9 @@ const SEED_PASS  = process.env.TEST_PASS  ?? ''
 test.describe('Auth flow', () => {
   test('login page renders correctly', async ({ page }) => {
     await page.goto('/login')
-    await expect(page.getByText('ANTHROP\\C')).toBeVisible()
+    // Brand name is controlled by NEXT_PUBLIC_BRAND_NAME env var (default: ANTHROP\C)
+    const brandName = process.env.NEXT_PUBLIC_BRAND_NAME ?? 'ANTHROP\\C'
+    await expect(page.getByText(brandName)).toBeVisible()
     await expect(page.getByText('Certification Portal')).toBeVisible()
     await expect(page.getByLabel(/email/i)).toBeVisible()
     await expect(page.getByLabel(/password/i)).toBeVisible()

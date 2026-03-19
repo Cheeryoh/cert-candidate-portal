@@ -58,3 +58,18 @@ export async function getOrganization(
   if (error) throw error
   return data
 }
+
+export async function getAttemptById(
+  supabase: SupabaseClient,
+  attemptId: string,
+  candidateId: string,
+) {
+  const { data, error } = await supabase
+    .from('exam_attempts')
+    .select('*, certifications(id, code, name, category, passing_score, time_limit_minutes, validity_months)')
+    .eq('id', attemptId)
+    .eq('candidate_id', candidateId)
+    .single()
+  if (error) throw error
+  return data
+}
