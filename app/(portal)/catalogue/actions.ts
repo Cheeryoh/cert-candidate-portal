@@ -115,23 +115,42 @@ export async function registerAndStartExam(
  * Generates a Supabase magic link and redirects the user to the Performance
  * Lab's auth callback, which sets a session cookie on the Lab's domain and
  * forwards to /exam/launch/[attemptId].
+ *
+ * Requires in Vercel (portal project):
+ *   PERFORMANCE_LAB_URL      = https://performance-lab-zeta.vercel.app
+ *   SUPABASE_SERVICE_ROLE_KEY = <shared service role key>
  */
 async function redirectToLab(email: string, attemptId: string): Promise<never> {
-  const admin = createAdminClient()
+  const labUrl = PERF_LAB_URL
 
-  const { data: linkData, error } = await admin.auth.admin.generateLink({
-    type: 'magiclink',
-    email,
-  })
-
-  if (error || !linkData?.properties?.hashed_token) {
-    // Fallback: send to launch page without auth handoff (user sees Unauthorized
-    // if not logged in on Lab domain — acceptable degraded path for demo)
-    redirect(`${PERF_LAB_URL}/exam/launch/${attemptId}`)
+  if (!labUrl) {
+    throw new Error(
+      'PERFORMANCE_LAB_URL is not set. Add it to Vercel environment variables for the candidate portal.',
+    )
   }
 
-  const next = encodeURIComponent(`/exam/launch/${attemptId}`)
-  redirect(
-    `${PERF_LAB_URL}/api/auth/callback?token_hash=${linkData.properties.hashed_token}&next=${next}`,
-  )
+  try {
+    const admin = createAdminClient()
+    const { data: linkData, error } = await admin.auth.admin.generateLink({
+      type: 'magiclink',
+      email,
+    })
+
+    if (!error && linkData?.properties?.hashed_token) {
+      const next = encodeURIComponent(`/exam/launch/${attemptId}`)
+      redirect(
+        `${labUrl}/api/auth/callback?token_hash=${linkData.properties.hashed_token}&next=${next}`,
+      )
+    }
+  } catch (err) {
+    // Re-throw Next.js redirect signals — never swallow them
+    if ((err as { digest?: string })?.digest?.startsWith('NEXT_REDIRECT')) throw err
+    // createAdminClient() throws if SUPABASE_SERVICE_ROLE_KEY is missing.
+    // Fall through to direct redirect below (candidate lands on Lab login).
+    console.error('[redirectToLab] magic link generation failed:', err)
+  }
+
+  // Fallback: direct link without auth handoff. The Lab will redirect to
+  // portal login if the candidate has no session on the Lab domain.
+  redirect(`${labUrl}/exam/launch/${attemptId}`)
 }

@@ -41,17 +41,22 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/catalogue', request.url))
   }
 
-  const admin = createAdminClient()
-  const { data: linkData, error } = await admin.auth.admin.generateLink({
-    type: 'magiclink',
-    email: user.email!,
-  })
+  try {
+    const admin = createAdminClient()
+    const { data: linkData, error } = await admin.auth.admin.generateLink({
+      type: 'magiclink',
+      email: user.email!,
+    })
 
-  if (error || !linkData?.properties?.hashed_token) {
-    return NextResponse.redirect(new URL('/catalogue', request.url))
+    if (!error && linkData?.properties?.hashed_token) {
+      const next = encodeURIComponent(`/exam/launch/${attemptId}`)
+      const url = `${PERF_LAB_URL}/api/auth/callback?token_hash=${linkData.properties.hashed_token}&next=${next}`
+      return NextResponse.redirect(url)
+    }
+  } catch (err) {
+    console.error('[lab-handoff] magic link generation failed:', err)
   }
 
-  const next = encodeURIComponent(`/exam/launch/${attemptId}`)
-  const url = `${PERF_LAB_URL}/api/auth/callback?token_hash=${linkData.properties.hashed_token}&next=${next}`
-  return NextResponse.redirect(url)
+  // Fallback if SUPABASE_SERVICE_ROLE_KEY not set — direct link
+  return NextResponse.redirect(`${PERF_LAB_URL}/exam/launch/${attemptId}`)
 }
