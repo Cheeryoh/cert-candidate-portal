@@ -1,16 +1,26 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
+
+/** Cert codes that launch the Performance Lab instead of the MCQ exam. */
+const PERF_LAB_CODES = new Set(['CCPA-101', 'CCPA-201'])
+
+const PERF_LAB_URL = process.env.PERFORMANCE_LAB_URL ?? ''
 
 /**
- * Creates a new in_progress exam attempt for the current user.
+ * Creates a new exam attempt for the current user and routes them to the
+ * correct exam environment:
  *
- * - Attempt number is sequential: MAX(existing) + 1 per candidate+cert pair.
- * - No concurrent-attempt restriction in demo mode — any eligible candidate
- *   (prerequisites met, enforced by DB trigger) can start as many attempts
- *   as they like.
- * - On success, redirects to /exam/<attemptId> so the candidate can take the exam.
+ *  - CCPA-101 / CCPA-201 → Performance Lab (GitHub Codespace, 4D rubric)
+ *    Attempt starts as 'scheduled'; Performance Lab transitions to 'in_progress'
+ *    on Codespace provisioning. Auth is handed off via a Supabase magic link
+ *    so the candidate's session is valid on the Performance Lab domain.
+ *
+ *  - All other certs → MCQ exam inside this portal (/exam/[id])
+ *    Attempt starts as 'in_progress' immediately.
+ *
+ * Demo mode: concurrent attempts are allowed (no in-progress guard).
  */
 export async function registerAndStartExam(
   certificationId: string,
@@ -23,7 +33,20 @@ export async function registerAndStartExam(
 
   if (!user) redirect('/login')
 
-  // Determine the next sequential attempt number for this candidate + cert
+  // Determine cert type — one query, no extra round-trip later
+  const { data: cert } = await supabase
+    .from('certifications')
+    .select('code')
+    .eq('id', certificationId)
+    .single()
+
+  const isLabCert = cert ? PERF_LAB_CODES.has(cert.code) : false
+
+  // Performance Lab manages the in_progress transition itself; portal
+  // creates the row as 'scheduled' so the Lab's /api/exam/start accepts it.
+  const initialStatus = isLabCert ? 'scheduled' : 'in_progress'
+
+  // Sequential attempt number for this candidate + cert
   const { data: latest } = await supabase
     .from('exam_attempts')
     .select('attempt_number')
@@ -35,21 +58,26 @@ export async function registerAndStartExam(
 
   const nextAttempt = (latest?.attempt_number ?? 0) + 1
 
+  const basePayload = {
+    candidate_id: user.id,
+    certification_id: certificationId,
+    attempt_number: nextAttempt,
+    status: initialStatus,
+    // MCQ exams start immediately; Lab exams get started_at set by the Lab
+    ...(isLabCert ? {} : { started_at: new Date().toISOString() }),
+  }
+
   const { data: newAttempt, error } = await supabase
     .from('exam_attempts')
-    .insert({
-      candidate_id: user.id,
-      certification_id: certificationId,
-      attempt_number: nextAttempt,
-      status: 'in_progress',
-      started_at: new Date().toISOString(),
-    })
+    .insert(basePayload)
     .select('id')
     .single()
 
+  let attemptId: string
+
   if (error) {
-    // Unique constraint race: another tab registered simultaneously — retry
     if (error.code === '23505') {
+      // Unique constraint race — re-read max and retry once
       const { data: retryLatest } = await supabase
         .from('exam_attempts')
         .select('attempt_number')
@@ -59,25 +87,51 @@ export async function registerAndStartExam(
         .limit(1)
         .maybeSingle()
 
-      const retryAttemptNum = (retryLatest?.attempt_number ?? 0) + 1
-
       const { data: retryAttempt } = await supabase
         .from('exam_attempts')
         .insert({
-          candidate_id: user.id,
-          certification_id: certificationId,
-          attempt_number: retryAttemptNum,
-          status: 'in_progress',
-          started_at: new Date().toISOString(),
+          ...basePayload,
+          attempt_number: (retryLatest?.attempt_number ?? 0) + 1,
         })
         .select('id')
         .single()
 
-      redirect(`/exam/${retryAttempt!.id}`)
+      attemptId = retryAttempt!.id
     } else {
       throw new Error(error.message)
     }
+  } else {
+    attemptId = newAttempt!.id
   }
 
-  redirect(`/exam/${newAttempt!.id}`)
+  if (isLabCert) {
+    await redirectToLab(user.email!, attemptId)
+  }
+
+  redirect(`/exam/${attemptId}`)
+}
+
+/**
+ * Generates a Supabase magic link and redirects the user to the Performance
+ * Lab's auth callback, which sets a session cookie on the Lab's domain and
+ * forwards to /exam/launch/[attemptId].
+ */
+async function redirectToLab(email: string, attemptId: string): Promise<never> {
+  const admin = createAdminClient()
+
+  const { data: linkData, error } = await admin.auth.admin.generateLink({
+    type: 'magiclink',
+    email,
+  })
+
+  if (error || !linkData?.properties?.hashed_token) {
+    // Fallback: send to launch page without auth handoff (user sees Unauthorized
+    // if not logged in on Lab domain — acceptable degraded path for demo)
+    redirect(`${PERF_LAB_URL}/exam/launch/${attemptId}`)
+  }
+
+  const next = encodeURIComponent(`/exam/launch/${attemptId}`)
+  redirect(
+    `${PERF_LAB_URL}/api/auth/callback?token_hash=${linkData.properties.hashed_token}&next=${next}`,
+  )
 }

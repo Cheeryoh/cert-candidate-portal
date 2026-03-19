@@ -85,6 +85,12 @@ export function CertCard({
   const hasInProgress =
     latest_attempt?.status === 'in_progress' && !!latest_attempt?.id
 
+  // CCPA certs run in the Performance Lab — route via /api/lab-handoff
+  const isLabCert = code === 'CCPA-101' || code === 'CCPA-201'
+  const continueHref = isLabCert
+    ? `/api/lab-handoff?attemptId=${latest_attempt?.id}`
+    : `/exam/${latest_attempt?.id}`
+
   return (
     <Card className="flex flex-col gap-2">
       <CardHeader className="pb-2">
@@ -111,7 +117,7 @@ export function CertCard({
           <div className="mt-1 flex flex-col gap-2">
             {hasInProgress && (
               <Link
-                href={`/exam/${latest_attempt!.id}`}
+                href={continueHref}
                 className="w-full rounded-md border border-primary bg-primary/10 px-3 py-1.5 text-center text-xs font-medium text-primary transition-colors hover:bg-primary/20"
               >
                 Continue Exam →
