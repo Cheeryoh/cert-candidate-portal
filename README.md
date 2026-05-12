@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cert Candidate Portal
 
-## Getting Started
+> Candidate-facing certification portal for AI-powered, performance-based credentialing programs
 
-First, run the development server:
+A full-stack web application managing the end-to-end learner journey — eligibility verification, exam launch, AI-scored submission, and credential history. Built as part of an independent research initiative to reimagine certification in an AI-first world.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Pairs with [Performance Lab](https://github.com/Cheeryoh/performance-lab) for exam delivery and AI scoring.
+
+---
+
+## What This Solves
+
+Traditional certification portals are passive — a course catalog and a "Schedule Exam" button. This portal is active:
+
+- **Eligibility-gated** — Candidates cannot enroll in exams they are not ready for. Prerequisites are enforced at the database layer, not just the UI.
+- **Performance-based** — Exams are not multiple choice. Candidates complete real tasks in live, isolated environments provisioned per-attempt.
+- **AI-scored** — Submissions are graded on a 4D rubric (Delegation, Description, Discernment, Diligence) by Claude API, not a Scantron.
+- **Audit-ready** — Every attempt, score, and review decision is logged for program governance and reporting.
+
+---
+
+## Candidate Journey
+
+```
+Login (magic link) → Dashboard → Exam Catalogue → Launch Exam → Performance Lab → Results → History
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Key Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Feature | Description |
+|---------|-------------|
+| Magic link auth | Passwordless — candidates authenticate via email link (Supabase Auth) |
+| Eligibility enforcement | Prerequisites enforced at DB layer — ineligible inserts blocked by trigger |
+| Exam catalogue | Role-based exam listings with live prerequisite status indicators |
+| Exam launch | Secure handoff to Performance Lab — provisions isolated exam environment per attempt |
+| Attempt history | Full record of past attempts, scores, and 4D rubric breakdowns |
+| Security hardened | Rate limiting, CSP headers, deny-by-default routing, RLS on all tables |
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Program Architecture
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This portal is one half of a two-system certification stack:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+cert-candidate-portal       <->       performance-lab
+(learner identity,                    (exam environment,
+ eligibility, history)                 AI scoring, submission)
+          |                                    |
+               Supabase (shared DB + auth)
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Tech Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Next.js 15 (App Router), TypeScript, Tailwind CSS, shadcn/ui |
+| Backend | Supabase (PostgreSQL, Row-Level Security, Auth) |
+| Deployment | Vercel |
+| Testing | Playwright (E2E — auth, dashboard, catalogue, history, exam flows) |
+| Exam Delivery | [Performance Lab](https://github.com/Cheeryoh/performance-lab) via handoff API |
